@@ -4,6 +4,8 @@
 
 # CyberChef 汉化增强版 · CyberChef i18n & MCP Edition
 
+[![Live Demo](https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E4%BD%93%E9%AA%8C-Live%20Demo-brightgreen.svg)](https://kobaw23214.github.io/CyberChef-zh/)
+[![Release](https://img.shields.io/badge/release-v11.5.0--zh.1-blue.svg)](https://github.com/kobaw23214/CyberChef-zh/releases/tag/v11.5.0-zh.1)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Upstream](https://img.shields.io/badge/fork%20of-gchq%2FCyberChef%20v11.5.0-8A2BE2.svg)](https://github.com/gchq/CyberChef)
 ![Languages](https://img.shields.io/badge/UI%20languages-8-green.svg)
@@ -61,6 +63,8 @@ Web 端全部运算仍在浏览器本地完成;MCP 在服务端以 Node 运行�
 词典位于 `src/web/i18n/languages/<code>/`(ui/categories/operations/descriptions/args/options 六类 JSON + patterns)。补充翻译时直接在对应语言目录添加词条即可,缺失键回退英文;`node src/web/i18n/extract.mjs` 可从源码导出待译清单。新增语言:建目录 + 词典 + 在 `i18n.mjs` 的 `LANGUAGES` 注册 + `index.html` 语言下拉加选项。
 
 ## 快速开始
+
+**[🚀 在线体验 / Live Demo](https://kobaw23214.github.io/CyberChef-zh/)**(浏览器本地运算,无需安装;MCP 演示请用本地 `npm run mcp`)
 
 ```bash
 npm install
