@@ -26,8 +26,8 @@
         <title>CyberChef</title>
 
         <meta name="copyright" content="Crown Copyright 2016-<%= htmlWebpackPlugin.options.compileYear %>" />
-        <meta name="description" content="The Cyber Swiss Army Knife - a web app for encryption, encoding, compression and data analysis" />
-        <meta name="keywords" content="base64, hex, decode, encode, encrypt, decrypt, compress, decompress, regex, regular expressions, hash, crypt, hexadecimal, user agent, url, certificate, x.509, parser, JSON, gzip,  md5, sha1, aes, des, blowfish, xor" />
+        <meta name="description" content="CyberChef 中文版 - 网络瑞士军刀:加密/编码/压缩/数据分析,完整简中本地化,8 种界面语言,内置 MCP 服务供 AI agent 调用 505 个操作 | A fork of CyberChef with zh-CN localization, multilingual UI and a built-in MCP server" />
+        <meta name="keywords" content="base64, hex, decode, encode, encrypt, decrypt, compress, decompress, regex, regular expressions, hash, crypt, hexadecimal, user agent, url, certificate, x.509, parser, JSON, gzip, md5, sha1, aes, des, blowfish, xor, CyberChef 中文版, CyberChef 汉化, CyberChef 中文, 网络瑞士军刀, 在线加解密, 编码解码, mcp, model context protocol, ai agent, i18n, localization, 繁體中文, 日本語, 한국어, multilingual" />
 
         <link rel="icon" type="image/ico" href="<%- require('../static/images/favicon.ico') %>" />
 
@@ -41,8 +41,38 @@
                 // LocalStorage access is denied by security settings
             }
 
+            // UI language is stored in the options; the boot bundle handles
+            // full translation - only Simplified Chinese has localised
+            // preloader messages, everything else falls back to English.
+            var zhUI = true;
+            try {
+                zhUI = ((JSON.parse(localStorage.getItem("options")) || {}).language) === "zh-CN";
+            } catch (err) {}
+
             // Define loading messages
-            var loadingMsgs = [
+            var loadingMsgs = zhUI ? [
+                "正在证明 P = NP……",
+                "正在计算 6 × 9……",
+                "正在挖比特币……",
+                "正在除以 0……",
+                "正在初始化天网……",
+                "[已编辑]",
+                "正在下载更多内存……",
+                "正在整理 0 和 1……",
+                "正在穿越神经网络……",
+                "正在导入机器学习……",
+                "正在向 Alice 和 Bob 发放一次性密码本……",
+                "正在挖比特币现金……",
+                "正试图逃出 vim 来生成密钥材料……",
+                "for i in range(additional): Pylon()",
+                "(正在制造未解决的紧张感……",
+                "正在把 emacs 和 vim 软链接到 ed……",
+                "正在训练分支预测器……",
+                "正在测算缓存命中……",
+                "正在推测执行配方……",
+                "正在添加大模型幻觉……",
+                "正在解压恶意软件……"
+            ] : [
                 "Proving P = NP...",
                 "Computing 6 x 9...",
                 "Mining bitcoin...",
@@ -122,7 +152,14 @@
                 clearInterval(window.loadingMsgsInt);
                 document.getElementById("preloader").remove();
                 document.getElementById("preloader-msg").remove();
-                document.getElementById("preloader-error").innerHTML =
+                document.getElementById("preloader-error").innerHTML = zhUI ?
+                    "CyberChef 加载时遇到错误。<br><br>" +
+                    "支持以下浏览器版本:" +
+                    "<ul><li>Google Chrome 50+</li><li>Mozilla Firefox 38+</li></ul>" +
+                    "你的 User-Agent 是:<br>" + escapeHtml(navigator.userAgent) + "<br><br>" +
+                    "如果你的浏览器在支持列表中,请<a href='https://github.com/gchq/CyberChef/issues/new/choose'>" +
+                    "提交 issue</a> 并附上以下详细信息:<br><br>" +
+                    "<pre>" + escapeHtml(msg) + "</pre>" :
                     "CyberChef encountered an error while loading.<br><br>" +
                     "The following browser versions are supported:" +
                     "<ul><li>Google Chrome 50+</li><li>Mozilla Firefox 38+</li></ul>" +
@@ -155,14 +192,17 @@
                         <script type="text/javascript">
                             // Must be text/javascript rather than application/javascript otherwise IE won't recognise it...
                             if (navigator.userAgent && navigator.userAgent.match(/Trident/)) {
-                                document.getElementById("notice").innerHTML += "Internet Explorer is not supported, please use Firefox or Chrome instead";
-                                alert("Internet Explorer is not supported, please use Firefox or Chrome instead");
+                                var ieMsg = zhUI ? "不支持 Internet Explorer,请改用 Firefox 或 Chrome"
+                                    : "Internet Explorer is not supported, please use Firefox or Chrome instead";
+                                document.getElementById("notice").innerHTML += ieMsg;
+                                alert(ieMsg);
                             }
                         </script>
-                        <noscript>JavaScript is not enabled. Good luck.</noscript>
+                        <noscript>JavaScript is not enabled. Good luck. / 未启用 JavaScript。祝你好运。</noscript>
                     </span>
                 </div>
                 <div class="col" style="text-align: right; padding-right: 0;">
+                    <a href="#" id="mcp" data-help-title="MCP Management" data-help="The MCP management panel connects to the CyberChef MCP service to choose which CyberChef operations are exposed to AI agents, and to inspect their call history. The four built-in MCP tools are always available.">MCP <i class="material-icons">hub</i></a>
                     <a href="#" id="options" data-help-title="Options and Settings" data-help="Configurable options to change how CyberChef behaves. These settings are stored in your browser's local storage, meaning they will persist between sessions that use the same browser profile.">Options <i class="material-icons">settings</i></a>
                     <a href="#" id="support" data-toggle="modal" data-target="#support-modal" data-help-title="About / Support" data-help="This pane provides information about the CyberChef web app, how to use some of the features, and how to raise bug reports.">About / Support <i class="material-icons">help</i></a>
                 </div>
@@ -204,7 +244,7 @@
                                 Step
                             </button>
 
-                            <button type="button" class="mx-2 btn btn-lg btn-success btn-raised btn-block" id="bake" data-help-title="Baking" data-help="<p>Baking causes CyberChef to run the Recipe against your data. This involves three steps:</p><ol><li>The data in the Input is encoded into bytes using the character encoding selected in the Input status bar.</li><li>The data is run through each of the operations in the Recipe in turn with the output of one operation being fed into the next operation as its input.</li><li>The outcome of the final operation in the Recipe is decoded into Output text using the character encoding selected in the Output status bar.</li></ol><p>If there are multiple Inputs, the Bake button causes every Input to be baked simultaneously.</p>">
+                            <button type="button" class="mx-2 btn btn-lg btn-success btn-raised btn-block" id="bake" data-help-title="Bake!" data-help="<p>Baking causes CyberChef to run the Recipe against your data. This involves three steps:</p><ol><li>The data in the Input is encoded into bytes using the character encoding selected in the Input status bar.</li><li>The data is run through each of the operations in the Recipe in turn with the output of one operation being fed into the next operation as its input.</li><li>The outcome of the final operation in the Recipe is decoded into Output text using the character encoding selected in the Output status bar.</li></ol><p>If there are multiple Inputs, the Bake button causes every Input to be baked simultaneously.</p>">
                                 <img aria-hidden="true" src="<%- require('../static/images/cook_male-32x32.png') %>" alt="Chef Icon"/>
                                 <span>Bake!</span>
                             </button>
@@ -430,6 +470,68 @@
             </div>
         </div>
 
+        <div id="mcp-overlay" class="mcp-overlay" hidden>
+            <div class="mcp-panel">
+                <div class="mcp-header">
+                    <h5 class="mcp-title" id="mcp-title">MCP</h5>
+                    <span id="mcp-status" class="mcp-status mcp-status-off">●</span>
+                    <input type="text" class="form-control mcp-url" id="mcp-url"
+                           spellcheck="false" autocomplete="off">
+                    <button type="button" class="btn btn-secondary btn-sm" id="mcp-connect"></button>
+                    <button type="button" class="btn btn-secondary btn-sm" id="mcp-refresh"></button>
+                    <button type="button" class="btn btn-primary btn-sm mcp-close" id="mcp-close" aria-label="Close"><i class="material-icons">close</i></button>
+                </div>
+                <div class="mcp-body">
+                    <div class="mcp-tabs" role="tablist">
+                        <button type="button" class="mcp-tab active" id="mcp-tab-manage" role="tab"></button>
+                        <button type="button" class="mcp-tab" id="mcp-tab-records" role="tab"></button>
+                    </div>
+
+                    <div class="mcp-sheet mcp-sheet-manage" id="mcp-sheet-manage">
+                        <div class="mcp-section mcp-ops-section">
+                            <h6>
+                                <span id="mcp-ops-heading"></span>
+                                <span id="mcp-ops-count" class="mcp-ops-count"></span>
+                                <button type="button" class="btn btn-secondary btn-sm" id="mcp-ops-all"></button>
+                                <button type="button" class="btn btn-secondary btn-sm" id="mcp-ops-none"></button>
+                            </h6>
+                            <p class="mcp-builtin-tools" id="mcp-builtin-tools"></p>
+                            <input type="text" class="form-control mcp-ops-search" id="mcp-ops-search"
+                                   spellcheck="false" autocomplete="off">
+                            <ul id="mcp-ops-list" class="mcp-ops-list"></ul>
+                        </div>
+                    </div>
+
+                    <div class="mcp-sheet mcp-sheet-records" id="mcp-sheet-records" hidden>
+                        <div class="mcp-section mcp-records-section">
+                            <div class="mcp-records-controls">
+                                <input type="text" class="form-control mcp-records-search" id="mcp-records-search"
+                                       spellcheck="false" autocomplete="off">
+                                <select class="form-control mcp-records-range" id="mcp-records-range"></select>
+                                <input type="datetime-local" class="form-control mcp-records-dt" id="mcp-records-from" hidden>
+                                <input type="datetime-local" class="form-control mcp-records-dt" id="mcp-records-to" hidden>
+                                <button type="button" class="btn btn-secondary btn-sm" id="mcp-records-clear"></button>
+                            </div>
+                            <div class="mcp-records-scroll">
+                                <table class="table table-sm mcp-records-table">
+                                    <thead>
+                                        <tr>
+                                            <th id="mcp-th-time"></th>
+                                            <th id="mcp-th-tool"></th>
+                                            <th id="mcp-th-result"></th>
+                                            <th id="mcp-th-duration"></th>
+                                            <th id="mcp-th-detail"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="mcp-records-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="modal fade" id="options-modal" tabindex="-1" role="dialog">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content" data-help-proxy="#options">
@@ -438,6 +540,25 @@
                     </div>
                     <div class="modal-body" id="options-body">
                         <p style="font-weight: bold">Please note that these options will persist between sessions.</p>
+
+                        <div class="form-group option-item">
+                            <label for="language" class="bmd-label-floating">Language</label>
+                            <select class="form-control" option="language" id="language">
+                                <option value="zh-CN">中文(简体)</option>
+                                <option value="zh-TW">中文(繁體)</option>
+                                <option value="ja">日本語</option>
+                                <option value="ko">한국어</option>
+                                <option value="de">Deutsch</option>
+                                <option value="fr">Français</option>
+                                <option value="es">Español</option>
+                                <option value="en">English</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group option-item">
+                            <label for="manage-operations" class="bmd-label-floating">Operations shown</label>
+                            <button type="button" class="btn btn-secondary form-control" id="manage-operations">Manage operations...</button>
+                        </div>
 
                         <div class="form-group option-item">
                             <label for="theme" class="bmd-label-floating"> Theme (only supported in modern browsers)</label>
@@ -886,6 +1007,26 @@
         </div>
 
         <!-- The Help modal should be last to ensure it has the highest z-index -->
+        <div class="modal fade" id="ops-tree-modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Manage displayed operations</h5>
+                    </div>
+                    <div class="modal-body">
+                        <p>Uncheck operations to hide them from the Operations list. Hidden operations still work in recipes loaded from links.</p>
+                        <input type="search" class="form-control" id="ops-tree-search" placeholder="Filter operations..." autocomplete="off">
+                        <div id="ops-tree" style="max-height: 55vh; overflow-y: auto; margin-top: 10px; border: 1px solid #ddd; border-radius: 4px; padding: 8px;"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="ops-tree-all">Select all</button>
+                        <button type="button" class="btn btn-secondary" id="ops-tree-none">Select none</button>
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="modal fade" id="help-modal" tabindex="-1" role="dialog">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">

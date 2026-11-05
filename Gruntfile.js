@@ -317,8 +317,8 @@ module.exports = function (grunt) {
                     process: function (content, srcpath) {
                         if (srcpath.indexOf("index.html") >= 0) {
                             // Replace download link with version number
-                            content = content.replace(/<a [^>]+>Download CyberChef.+?<\/a>/,
-                                `<span>Version ${pkg.version}</span>`);
+                            content = content.replace(/<a [^>]+>(?:Download CyberChef|下载 CyberChef).+?<\/a>/,
+                                `<span>版本 ${pkg.version}</span>`);
 
                             return grunt.template.process(content, srcpath);
                         } else {

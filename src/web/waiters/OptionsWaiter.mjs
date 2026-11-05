@@ -4,6 +4,8 @@
  * @license Apache-2.0
  */
 
+import Utils from "../../core/Utils.mjs";
+
 /**
  * Waiter to handle events related to the CyberChef options.
  */
@@ -27,6 +29,9 @@ class OptionsWaiter {
      */
     load(options) {
         Object.assign(this.app.options, options);
+
+        // Sync the hidden operations set from the stored options
+        this.app.hiddenOperations = new Set(this.app.options.hiddenOperations || []);
 
         // Set options to match object
         document.querySelectorAll("#options-body input[type=checkbox]").forEach(cbox => {
@@ -72,6 +77,7 @@ class OptionsWaiter {
      */
     resetOptionsClick() {
         this.load(this.app.doptions);
+        this.app.setHiddenOperations([]);
     }
 
 
@@ -111,8 +117,15 @@ class OptionsWaiter {
     selectChange(e) {
         const el = e.target;
         const option = el.getAttribute("option");
+        // The UI language is applied at boot; reload to switch fully. Skip
+        // when the value did not actually change (load() re-dispatches).
+        const reload = option === "language" && this.app.options.language !== el.value;
 
         this.updateOption(option, el.value);
+
+        if (reload) {
+            setTimeout(() => location.reload(), 100);
+        }
     }
 
     /**
@@ -203,6 +216,137 @@ class OptionsWaiter {
         this.manager.input.setLogLevel();
         this.manager.output.setLogLevel();
         this.manager.background.setLogLevel();
+    }
+
+
+    /**
+     * Handler for the 'Manage operations' button.
+     * Builds the operations visibility tree and displays the modal.
+     *
+     * @param {event} e
+     */
+    manageOperationsClick(e) {
+        e.preventDefault();
+        this.buildOperationsTree();
+        $("#ops-tree-modal").modal();
+    }
+
+
+    /**
+     * Builds the category/operation checkbox tree used to control which
+     * operations are displayed in the Operations list.
+     */
+    buildOperationsTree() {
+        const treeEl = document.getElementById("ops-tree");
+        let html = "";
+
+        for (let i = 0; i < this.app.categories.length; i++) {
+            const cat = this.app.categories[i];
+            html += `<div class="ops-tree-category" data-catname="${cat.name}">
+                <label style="font-weight: bold; cursor: pointer; display: block; margin: 6px 0 2px 0">
+                    <input type="checkbox" class="ops-tree-cat-checkbox" data-cat="${i}">
+                    ${Utils.escapeHtml(cat.display || cat.name)}
+                    <span class="ops-tree-count" style="font-weight: normal; color: #888"></span>
+                </label>
+                <div class="ops-tree-ops" style="margin-left: 22px; display: flex; flex-wrap: wrap;">`;
+
+            for (const opName of cat.ops) {
+                if (!(opName in this.app.operations)) continue;
+                const display = this.app.operations[opName].display || opName;
+                html += `<label class="ops-tree-op" data-search="${Utils.escapeHtml((display + " " + opName).toLowerCase())}" style="margin: 1px 16px 1px 0; cursor: pointer; font-weight: normal">
+                    <input type="checkbox" class="ops-tree-op-checkbox" data-op="${Utils.escapeHtml(opName)}">
+                    ${Utils.escapeHtml(display)}
+                </label>`;
+            }
+
+            html += `</div></div>`;
+        }
+
+        treeEl.innerHTML = html;
+        this.updateTreeStates();
+
+        // Wire handlers (off first so re-opening the modal doesn't stack them)
+        $(treeEl).off("change", ".ops-tree-op-checkbox").on("change", ".ops-tree-op-checkbox", () => this.applyTree());
+        $(treeEl).off("change", ".ops-tree-cat-checkbox").on("change", ".ops-tree-cat-checkbox", e => {
+            const checked = e.target.checked;
+            $(treeEl).find(`.ops-tree-op-checkbox[data-cat-group="${$(e.target).data("cat")}"]`).prop("checked", checked);
+            this.applyTree();
+        });
+
+        // Category checkbox affects the operations rendered under its block
+        $(treeEl).find(".ops-tree-category").each((_, catBlock) => {
+            const catIdx = $(".ops-tree-cat-checkbox", catBlock).data("cat");
+            $(".ops-tree-op-checkbox", catBlock).attr("data-cat-group", catIdx);
+        });
+
+        const searchEl = document.getElementById("ops-tree-search");
+        $(searchEl).off("input").on("input", () => this.filterTree(searchEl.value));
+
+        $("#ops-tree-all").off("click").on("click", () => {
+            $(treeEl).find(".ops-tree-op-checkbox").prop("checked", true);
+            this.applyTree();
+        });
+        $("#ops-tree-none").off("click").on("click", () => {
+            $(treeEl).find(".ops-tree-op-checkbox").prop("checked", false);
+            this.applyTree();
+        });
+    }
+
+
+    /**
+     * Reads the checkbox tree, hides the unchecked operations and refreshes
+     * the checkbox states (category tri-state and counts).
+     */
+    applyTree() {
+        const hidden = [];
+        document.querySelectorAll("#ops-tree .ops-tree-op-checkbox").forEach(cb => {
+            if (!cb.checked) hidden.push(cb.getAttribute("data-op"));
+        });
+
+        this.app.setHiddenOperations(hidden);
+        this.updateTreeStates();
+    }
+
+
+    /**
+     * Updates the operation checkboxes, category tri-state checkboxes and
+     * visible/total counts from the currently hidden operations.
+     */
+    updateTreeStates() {
+        document.querySelectorAll("#ops-tree .ops-tree-category").forEach(catBlock => {
+            const ops = Array.from(catBlock.querySelectorAll(".ops-tree-op-checkbox"));
+            if (!ops.length) return;
+
+            ops.forEach(cb => {
+                cb.checked = !this.app.isOperationHidden(cb.getAttribute("data-op"));
+            });
+
+            const visible = ops.filter(cb => cb.checked).length;
+            const catCb = catBlock.querySelector(".ops-tree-cat-checkbox");
+            catCb.checked = visible === ops.length;
+            catCb.indeterminate = visible > 0 && visible < ops.length;
+            catBlock.querySelector(".ops-tree-count").textContent = ` (${visible}/${ops.length})`;
+        });
+    }
+
+
+    /**
+     * Filters the tree to operations matching the given search term.
+     *
+     * @param {string} term
+     */
+    filterTree(term) {
+        const needle = term.trim().toLowerCase();
+
+        document.querySelectorAll("#ops-tree .ops-tree-op").forEach(el => {
+            el.style.display = (!needle || el.getAttribute("data-search").includes(needle)) ? "" : "none";
+        });
+
+        document.querySelectorAll("#ops-tree .ops-tree-category").forEach(catBlock => {
+            const anyVisible = Array.from(catBlock.querySelectorAll(".ops-tree-op"))
+                .some(el => el.style.display !== "none");
+            catBlock.style.display = anyVisible ? "" : "none";
+        });
     }
 }
 

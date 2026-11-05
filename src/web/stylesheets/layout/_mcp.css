@@ -1,0 +1,318 @@
+/**
+ * Full-screen MCP management panel
+ *
+ * Opened from the toolbar "MCP" link. All copy is injected at runtime by
+ * MCPWaiter so it honours the UI language switch.
+ */
+
+.mcp-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1100; /* above bootstrap modals (1050) */
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mcp-overlay[hidden] {
+    display: none;
+}
+
+.mcp-panel {
+    position: relative;
+    width: min(1200px, 94vw);
+    height: 88vh;
+    background-color: var(--primary-background-colour);
+    border-radius: 6px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.mcp-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--op-list-operation-border-colour);
+    flex: 0 0 auto;
+}
+
+.mcp-title {
+    margin: 0;
+}
+
+.mcp-status {
+    font-size: 1.2em;
+    line-height: 1;
+}
+
+.mcp-status-on {
+    color: #2e7d32;
+}
+
+.mcp-status-off {
+    color: #c62828;
+}
+
+.mcp-url {
+    flex: 1 1 auto;
+    min-width: 220px;
+}
+
+.mcp-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px 16px;
+}
+
+/* 双 sheet:tab 切换,每个功能独占面板主体 */
+.mcp-tabs {
+    display: flex;
+    flex: 0 0 auto;
+    margin-bottom: 10px;
+    border-bottom: 2px solid var(--op-list-operation-border-colour);
+}
+
+.mcp-tab {
+    padding: 8px 18px;
+    margin-bottom: -2px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    font-weight: bold;
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.mcp-tab.active {
+    opacity: 1;
+    border-bottom-color: #2e7d32;
+}
+
+.mcp-sheet {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.mcp-sheet[hidden] {
+    display: none;
+}
+
+.mcp-ops-section {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.mcp-ops-section h6 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mcp-ops-count {
+    font-weight: normal;
+    opacity: 0.75;
+}
+
+.mcp-builtin-tools {
+    margin: 4px 0 8px 0;
+    font-size: 0.85em;
+    opacity: 0.8;
+}
+
+.mcp-ops-search {
+    flex: 0 0 auto;
+    margin-bottom: 8px;
+}
+
+.mcp-ops-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex: 1 1 auto;
+    min-height: 240px;
+    overflow-y: auto;
+    border: 1px solid var(--op-list-operation-border-colour);
+    border-radius: 4px;
+}
+
+.mcp-cat-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    user-select: none;
+    /* 吸顶时必须完全不透明,否则滚动内容会从表头后面透出;
+       主题底色打底,原来的浅灰色调用一层渐变叠加保留 */
+    background-color: var(--primary-background-colour);
+    background-image: linear-gradient(rgba(128, 128, 128, 0.12), rgba(128, 128, 128, 0.12));
+    border-bottom: 1px solid var(--op-list-operation-border-colour);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.mcp-cat-arrow {
+    flex: 0 0 auto;
+    width: 1.1em;
+    text-align: center;
+    opacity: 0.7;
+}
+
+.mcp-cat-count {
+    margin-left: auto;
+    font-weight: normal;
+    font-size: 0.85em;
+    opacity: 0.65;
+}
+
+.mcp-ops-group {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.mcp-ops-category.mcp-collapsed > .mcp-ops-group {
+    display: none;
+}
+
+.mcp-ops-empty {
+    padding: 14px 10px;
+    opacity: 0.7;
+}
+
+.mcp-cat-toggle {
+    flex: 0 0 auto;
+    margin: 0;
+    cursor: pointer;
+}
+
+.mcp-cat-label {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.mcp-ops-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 10px 3px 30px;
+    border-bottom: 1px solid var(--op-list-operation-border-colour);
+}
+
+.mcp-op-toggle {
+    flex: 0 0 auto;
+    margin: 0;
+    cursor: pointer;
+}
+
+.mcp-op-label {
+    cursor: pointer;
+    word-break: break-all;
+}
+
+.mcp-op-disabled {
+    opacity: 0.45;
+    text-decoration: line-through;
+}
+
+.mcp-records-section {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.mcp-records-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+}
+
+.mcp-records-table {
+    table-layout: fixed;
+    width: 100%;
+    margin: 0;
+}
+
+.mcp-records-table th,
+.mcp-records-table td {
+    vertical-align: top;
+    word-break: break-all;
+}
+
+.mcp-records-table .mcp-col-time { width: 90px; }
+.mcp-records-table .mcp-col-tool { width: 140px; }
+.mcp-records-table .mcp-col-result { width: 60px; }
+.mcp-records-table .mcp-col-duration { width: 80px; }
+
+.mcp-record-ok {
+    color: #2e7d32;
+    font-weight: bold;
+}
+
+.mcp-record-fail {
+    color: #c62828;
+    font-weight: bold;
+}
+
+.mcp-record-detail {
+    font-family: var(--fixed-width-font-family, monospace);
+    font-size: 0.85em;
+    opacity: 0.9;
+}
+
+.mcp-records-controls {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.mcp-records-search {
+    flex: 1 1 180px;
+    min-width: 150px;
+}
+
+.mcp-records-range {
+    flex: 0 0 auto;
+    width: auto;
+}
+
+.mcp-records-dt {
+    flex: 0 0 auto;
+}
+
+/* 右上角独立关闭按钮 */
+.mcp-close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    z-index: 5;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.mcp-close .material-icons {
+    font-size: 20px;
+}

@@ -43,7 +43,7 @@ class OperationsWaiter {
             if (ops.length) {
                 selected = this.getSelectedOp(ops);
                 if (selected > -1) {
-                    this.manager.recipe.addOperation(ops[selected].innerHTML);
+                    this.manager.recipe.addOperation(ops[selected].getAttribute("data-op-name"));
                 }
             }
         }
@@ -131,10 +131,20 @@ class OperationsWaiter {
         const inStrNWS = inStr.replace(/\s/g, "");
 
         for (const opName in this.app.operations) {
-            const op = this.app.operations[opName];
+            if (this.app.isOperationHidden(opName)) continue;
 
-            // Match op name using fuzzy match
-            const [nameMatch, score, idxs] = fuzzyMatch(inStrNWS, opName);
+            const op = this.app.operations[opName];
+            const displayName = op.display || opName;
+
+            // Match op name using fuzzy match, against both the English
+            // identifier and the localised display name
+            const [enMatch, enScore] = fuzzyMatch(inStrNWS, opName);
+            const [zhMatch, zhScore, zhIdxs] = fuzzyMatch(inStrNWS, displayName);
+            const nameMatch = enMatch || zhMatch;
+            const score = Math.max(enScore, zhScore);
+
+            // Highlight ranges are only valid for the display name
+            const nameIdxs = zhMatch ? zhIdxs : [];
 
             // Match description based on exact match
             const descPos = op.description.toLowerCase().indexOf(inStr.toLowerCase());
@@ -142,7 +152,7 @@ class OperationsWaiter {
             if (nameMatch || descPos >= 0) {
                 const operation = new HTMLOperation(opName, this.app.operations[opName], this.app, this.manager);
                 if (highlight) {
-                    operation.highlightSearchStrings(calcMatchRanges(idxs), [[descPos, inStr.length]]);
+                    operation.highlightSearchStrings(calcMatchRanges(nameIdxs), [[descPos, inStr.length]]);
                 }
 
                 if (nameMatch) {
@@ -187,7 +197,8 @@ class OperationsWaiter {
         this.manager.recipe.createSortableSeedList(e.target);
 
         // Populate ops total
-        document.querySelector("#operations .title .op-count").innerText = Object.keys(this.app.operations).length;
+        document.querySelector("#operations .title .op-count").innerText =
+            Object.keys(this.app.operations).filter(n => !this.app.isOperationHidden(n)).length;
 
         this.enableOpsListPopovers(e.target);
     }
@@ -230,9 +241,9 @@ class OperationsWaiter {
      * @param {event} e
      */
     operationDblclick(e) {
-        const li = e.target;
+        const li = e.target.closest(".operation");
 
-        this.manager.recipe.addOperation(li.textContent);
+        this.manager.recipe.addOperation(li.getAttribute("data-op-name"));
     }
 
 
@@ -254,6 +265,7 @@ class OperationsWaiter {
         let html = "";
         for (let i = 0; i < favCat.ops.length; i++) {
             const opName = favCat.ops[i];
+            if (this.app.isOperationHidden(opName)) continue;
             const operation = new HTMLOperation(opName, this.app.operations[opName], this.app, this.manager);
             html += operation.toStubHtml(true);
         }
@@ -298,7 +310,7 @@ class OperationsWaiter {
      */
     saveFavouritesClick() {
         const favs = document.querySelectorAll("#edit-favourites-list li");
-        const favouritesList = Array.from(favs, e => e.childNodes[0].textContent);
+        const favouritesList = Array.from(favs, e => e.getAttribute("data-op-name"));
 
         this.app.saveFavourites(favouritesList);
         this.app.loadFavourites();

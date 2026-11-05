@@ -54,12 +54,84 @@ function transformArgs(opArgsList, newArgs) {
             if (index > -1) {
                 const argument = opArgs[index];
                 if (argument.type === "toggleString") {
-                    if (typeof newArgs[key] === "string") {
-                        argument.string = newArgs[key];
+                    // Accept the three wire forms a caller can produce: a bare
+                    // string, {string, option}, and the positional
+                    // ["value", "option"] array magic and web recipes use.
+                    // Anything else used to write undefined into .string and
+                    // silently empty the argument (an AES key of 0 bytes); it
+                    // now fails with the offending shape named.
+                    const supplied = newArgs[key];
+                    if (typeof supplied === "string") {
+                        argument.string = supplied;
+                    } else if (Array.isArray(supplied)) {
+                        const [value, option] = supplied;
+                        if (typeof value !== "string" || typeof option !== "string") {
+                            throw new TypeError(`Argument "${argument.name}" (toggleString) expects ["value", "option"] strings, got ${JSON.stringify(supplied)}`);
+                        }
+                        argument.string = value;
+                        argument.option = option;
+                    } else if (supplied && typeof supplied === "object") {
+                        if (typeof supplied.string !== "string") {
+                            throw new TypeError(`Argument "${argument.name}" (toggleString) expects a "string" field, got ${JSON.stringify(supplied)}`);
+                        }
+                        argument.string = supplied.string;
+                        argument.option = supplied.option;
                     } else {
-                        argument.string = newArgs[key].string;
-                        argument.option = newArgs[key].option;
+                        throw new TypeError(`Argument "${argument.name}" (toggleString) expects a string, {string, option} or ["value", "option"], got ${JSON.stringify(supplied)}`);
                     }
+                    // Toggle values are display strings ("UTF8"); operations
+                    // themselves match formats case-insensitively, so accept
+                    // any casing here too.
+                    const allowedFormats = removeSubheadingsFromArray(argument.toggleValues);
+                    if (allowedFormats.length > 0 &&
+                        argument.option !== undefined &&
+                        !allowedFormats.some(v => v.toLowerCase() === String(argument.option).toLowerCase())) {
+                        throw new TypeError(`Argument "${argument.name}": unknown format ${JSON.stringify(argument.option)}; expected one of ${allowedFormats.join(", ")}`);
+                    }
+                } else if (argument.type === "option") {
+                    // A wrong option string used to reach the operation as-is
+                    // and an array silently selected the default; both now
+                    // fail here with the allowed values named. The allowed
+                    // list is read before argument.value is replaced. Values
+                    // are matched case-insensitively and normalised to the
+                    // canonical casing (operations treat them
+                    // case-insensitively); numeric option lists compare by
+                    // strict equality.
+                    const allowed = Array.isArray(argument.value) ?
+                        removeSubheadingsFromArray(argument.value) :
+                        [];
+                    const supplied = newArgs[key];
+                    if (typeof supplied === "string") {
+                        const canonical = allowed.includes(supplied) ? supplied :
+                            allowed.find(v => typeof v === "string" && v.toLowerCase() === supplied.toLowerCase());
+                        if (allowed.length > 0 && canonical === undefined) {
+                            throw new TypeError(`Argument "${argument.name}" expects one of [${allowed.join(", ")}], got ${JSON.stringify(supplied)}`);
+                        }
+                        argument.value = canonical ?? supplied;
+                    } else if (typeof supplied === "number") {
+                        // Option lists sometimes store numeric values as
+                        // strings ("8") while callers send the number.
+                        const canonical = allowed.find(v => v === supplied ||
+                            (typeof v === "string" && v.trim() !== "" && Number(v) === supplied));
+                        if (allowed.length > 0 && canonical === undefined) {
+                            throw new TypeError(`Argument "${argument.name}" expects one of [${allowed.join(", ")}], got ${JSON.stringify(supplied)}`);
+                        }
+                        argument.value = canonical ?? supplied;
+                    } else {
+                        throw new TypeError(`Argument "${argument.name}" expects one of [${allowed.join(", ")}], got ${JSON.stringify(supplied)}`);
+                    }
+                } else if (argument.type === "argSelector") {
+                    // Same contract as option, with the {name, value} shape the
+                    // selector config uses; subheading names ([...]) are not
+                    // selectable values.
+                    const names = (Array.isArray(argument.value) ? argument.value : [])
+                        .map(v => v && typeof v === "object" && typeof v.name === "string" ? v.name : null)
+                        .filter(n => n !== null && !/^\[[\s\S]*\]$/.test(n));
+                    const supplied = newArgs[key];
+                    if (typeof supplied !== "string" || (names.length > 0 && !names.includes(supplied))) {
+                        throw new TypeError(`Argument "${argument.name}" expects one of [${names.join(", ")}], got ${JSON.stringify(supplied)}`);
+                    }
+                    argument.value = supplied;
                 } else if (argument.type === "editableOption") {
                     // takes key: "option", key: {name, val: "string"}, key: {name, val: [...]}
                     argument.value = typeof newArgs[key] === "string" ? newArgs[key]: newArgs[key].value;

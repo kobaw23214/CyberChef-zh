@@ -1,0 +1,19 @@
+{
+    "Favourites": "Favoriten",
+    "Data format": "Datenformat",
+    "Encryption / Encoding": "Verschlüsselung/Kodierung",
+    "Public Key": "Public Key",
+    "Arithmetic / Logic": "Arithmetik/Logik",
+    "Networking": "Netzwerke",
+    "Language": "Sprache",
+    "Utils": "Werkzeuge",
+    "Date / Time": "Datum/Zeit",
+    "Extractors": "Extraktion",
+    "Compression": "Komprimierung",
+    "Hashing": "Hashing",
+    "Code tidy": "Codebereinigung",
+    "Forensics": "Forensik",
+    "Multimedia": "Multimedia",
+    "Other": "Sonstiges",
+    "Flow control": "Ablaufsteuerung"
+}

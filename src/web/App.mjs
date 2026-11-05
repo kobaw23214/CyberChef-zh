@@ -9,6 +9,7 @@ import {fromBase64} from "../core/lib/Base64.mjs";
 import Manager from "./Manager.mjs";
 import HTMLCategory from "./HTMLCategory.mjs";
 import HTMLOperation from "./HTMLOperation.mjs";
+import {tOption, tUI} from "./i18n/i18n.mjs";
 import Split from "split.js";
 import moment from "moment-timezone";
 import cptable from "codepage";
@@ -34,6 +35,9 @@ class App {
         this.dfavourites   = defaultFavourites;
         this.doptions      = defaultOptions;
         this.options       = Object.assign({}, defaultOptions);
+
+        // Operations excluded from the Operations list by the user
+        this.hiddenOperations = new Set(defaultOptions.hiddenOperations || []);
 
         this.manager       = new Manager(this);
 
@@ -275,7 +279,7 @@ class App {
         for (i = 0; i < this.categories.length; i++) {
             const catConf = this.categories[i],
                 selected = i === 0,
-                cat = new HTMLCategory(catConf.name, selected);
+                cat = new HTMLCategory(catConf.name, selected, catConf.display);
 
             for (let j = 0; j < catConf.ops.length; j++) {
                 const opName = catConf.ops[j];
@@ -283,10 +287,15 @@ class App {
                     log.warn(`${opName} could not be found.`);
                     continue;
                 }
+                if (this.hiddenOperations.has(opName)) continue;
 
                 const op = new HTMLOperation(opName, this.operations[opName], this, this.manager);
                 cat.addOperation(op);
             }
+
+            // Skip categories with nothing left to display, keeping the
+            // Favourites category so the edit button stays available
+            if (cat.opList.length === 0 && i !== 0) continue;
 
             html += cat.toHtml();
         }
@@ -302,13 +311,42 @@ class App {
         // Add edit button to first category (Favourites)
         const favCat = document.querySelector("#categories a");
         favCat.appendChild(document.getElementById("edit-favourites"));
-        favCat.setAttribute("data-help-title", "Favourite operations");
-        favCat.setAttribute("data-help", `<p>This category displays your favourite operations.</p>
+        favCat.setAttribute("data-help-title", tUI("Favourite operations"));
+        favCat.setAttribute("data-help", tUI(`<p>This category displays your favourite operations.</p>
         <ul>
             <li><b>To add:</b> drag an operation over the Favourites category</li>
             <li><b>To reorder:</b> Click on the 'Edit favourites' button and drag operations up and down in the list provided</li>
             <li><b>To remove:</b> Click on the 'Edit favourites' button and hit the delete button next to the operation you want to remove</li>
-        </ul>`);
+        </ul>`));
+    }
+
+
+    /**
+     * Whether an operation has been hidden from the Operations list by the user.
+     * Hidden operations still run normally inside recipes.
+     *
+     * @param {string} name
+     * @returns {boolean}
+     */
+    isOperationHidden(name) {
+        return this.hiddenOperations.has(name);
+    }
+
+    /**
+     * Sets the list of operations hidden from the Operations list, persists it
+     * with the other options and refreshes the list.
+     *
+     * @param {string[]} names - Names of the operations to hide
+     */
+    setHiddenOperations(names) {
+        this.hiddenOperations = new Set(names);
+        this.options.hiddenOperations = [...this.hiddenOperations];
+
+        if (this.isLocalStorageAvailable()) {
+            localStorage.setItem("options", JSON.stringify(this.options));
+        }
+
+        this.populateOperationsList();
     }
 
 
@@ -404,8 +442,8 @@ class App {
             if (favourites[i] in this.operations) {
                 validFavs.push(favourites[i]);
             } else {
-                this.alert(`The operation "${Utils.escapeHtml(favourites[i])}" is no longer available. ` +
-                    "It has been removed from your favourites.");
+                this.alert(`The operation "${Utils.escapeHtml(favourites[i])}" ${tUI("is no longer available.")} ` +
+                    tUI("It has been removed from your favourites."));
             }
         }
         return validFavs;
@@ -420,7 +458,7 @@ class App {
     saveFavourites(favourites) {
         if (!this.isLocalStorageAvailable()) {
             this.alert(
-                "Your security settings do not allow access to local storage so your favourites cannot be saved.",
+                tUI("Your security settings do not allow access to local storage so your favourites cannot be saved."),
                 5000
             );
             return false;
@@ -451,7 +489,7 @@ class App {
         const favourites = JSON.parse(localStorage.favourites);
 
         if (favourites.indexOf(name) >= 0) {
-            this.alert(`'${name}' is already in your favourites`, 3000);
+            this.alert(`'${name}' ${tUI("is already in your favourites")}`, 3000);
             return;
         }
 
@@ -605,8 +643,10 @@ class App {
                 } else if (args[j].classList.contains("toggle-string")) {
                     // toggleString
                     args[j].value = recipeConfig[i].args[j].string;
-                    args[j].parentNode.parentNode.querySelector("button").innerHTML =
-                        Utils.escapeHtml(recipeConfig[i].args[j].option);
+                    const toggleVal = recipeConfig[i].args[j].option,
+                        toggleBtn = args[j].parentNode.parentNode.querySelector("button");
+                    toggleBtn.setAttribute("data-value", toggleVal);
+                    toggleBtn.innerHTML = Utils.escapeHtml(tOption(toggleVal));
                 } else {
                     // all others
                     args[j].value = recipeConfig[i].args[j];
@@ -667,7 +707,7 @@ class App {
 
         // const compareURL = `https://github.com/gchq/CyberChef/compare/v${prev.join(".")}...v${PKG_VERSION}`;
 
-        let compileInfo = `<a href='https://github.com/gchq/CyberChef/blob/master/CHANGELOG.md'>Last build: ${timeSinceCompile.substring(0, 1).toUpperCase() + timeSinceCompile.substring(1)} ago</a>`;
+        let compileInfo = `<a href='https://github.com/gchq/CyberChef/blob/master/CHANGELOG.md'>${tUI("Last build:")}${timeSinceCompile.substring(0, 1).toUpperCase() + timeSinceCompile.substring(1)}${tUI(" ago")}</a>`;
 
         if (window.compileMessage !== "") {
             compileInfo += " - " + window.compileMessage;
@@ -676,8 +716,8 @@ class App {
         const notice = document.getElementById("notice");
         notice.innerHTML = compileInfo;
         notice.setAttribute("title", Utils.stripHtmlTags(window.compileMessage));
-        notice.setAttribute("data-help-title", "Last build");
-        notice.setAttribute("data-help", "This live version of CyberChef is updated whenever new commits are added to the master branch of the CyberChef repository. It represents the latest, most up-to-date build of CyberChef.");
+        notice.setAttribute("data-help-title", tUI("Last build:"));
+        notice.setAttribute("data-help", tUI("This live version of CyberChef is updated whenever new commits are added to the master branch of the CyberChef repository. It represents the latest, most up-to-date build of CyberChef."));
     }
 
 

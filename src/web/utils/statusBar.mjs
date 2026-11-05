@@ -7,6 +7,7 @@
 import {showPanel} from "@codemirror/view";
 import {CHR_ENC_SIMPLE_LOOKUP, CHR_ENC_SIMPLE_REVERSE_LOOKUP} from "../../core/lib/ChrEnc.mjs";
 import { eolCodeToName, eolSeqToCode } from "./editorUtils.mjs";
+import {tUI, formatPattern} from "../i18n/i18n.mjs";
 
 /**
  * A Status bar extension for CodeMirror
@@ -44,8 +45,8 @@ class StatusBarPanel {
         const rhs = document.createElement("div");
 
         dom.className = "cm-status-bar";
-        dom.setAttribute("data-help-title", `${this.label} status bar`);
-        dom.setAttribute("data-help", `This status bar provides information about data in the ${this.label}. Help topics are available for each of the components by activating help when hovering over them.`);
+        dom.setAttribute("data-help-title", tUI(`${this.label} status bar`));
+        dom.setAttribute("data-help", tUI(`This status bar provides information about data in the ${this.label}. Help topics are available for each of the components by activating help when hovering over them.`));
         lhs.innerHTML = this.constructLHS();
         rhs.innerHTML = this.constructRHS();
 
@@ -224,8 +225,8 @@ class StatusBarPanel {
         switch (this.getEOLState()) {
             case 1: // Detected
                 val.classList.add("font-italic");
-                eolCode += " (detected)";
-                eolName += " (detected)";
+                eolCode += formatPattern("detected", {}, " (detected)");
+                eolName += formatPattern("detected", {}, " (detected)");
                 // Pulse
                 val.classList.add("pulse");
                 setTimeout(() => {
@@ -240,8 +241,8 @@ class StatusBarPanel {
         }
 
         val.textContent = eolCode;
-        button.setAttribute("title", `End of line sequence:<br>${eolName}`);
-        button.setAttribute("data-original-title", `End of line sequence:<br>${eolName}`);
+        button.setAttribute("title", `${tUI("End of line sequence:")}<br>${eolName}`);
+        button.setAttribute("data-original-title", `${tUI("End of line sequence:")}<br>${eolName}`);
         this.eolVal = state.lineBreak;
     }
 
@@ -253,7 +254,7 @@ class StatusBarPanel {
         const chrEncVal = this.chrEncGetter();
         if (this.getEncodingState() < 2 && chrEncVal === this.chrEncVal) return;
 
-        let name = CHR_ENC_SIMPLE_REVERSE_LOOKUP[chrEncVal] ? CHR_ENC_SIMPLE_REVERSE_LOOKUP[chrEncVal] : "Raw Bytes";
+        let name = CHR_ENC_SIMPLE_REVERSE_LOOKUP[chrEncVal] ? CHR_ENC_SIMPLE_REVERSE_LOOKUP[chrEncVal] : tUI("Raw Bytes");
 
         const val = this.dom.querySelector(".chr-enc-value");
         const button = val.closest(".cm-status-bar-select-btn");
@@ -261,7 +262,7 @@ class StatusBarPanel {
         switch (this.getEncodingState()) {
             case 1: // Detected
                 val.classList.add("font-italic");
-                name += " (detected)";
+                name += formatPattern("detected", {}, " (detected)");
                 // Pulse
                 val.classList.add("pulse");
                 setTimeout(() => {
@@ -276,8 +277,8 @@ class StatusBarPanel {
         }
 
         val.textContent = name;
-        button.setAttribute("title", `${this.label} character encoding:<br>${name}`);
-        button.setAttribute("data-original-title", `${this.label} character encoding:<br>${name}`);
+        button.setAttribute("title", `${tUI(`${this.label} character encoding:`)}<br>${name}`);
+        button.setAttribute("data-original-title", `${tUI(`${this.label} character encoding:`)}<br>${name}`);
         this.chrEncVal = chrEncVal;
     }
 
@@ -344,21 +345,21 @@ class StatusBarPanel {
      */
     constructLHS() {
         return `
-            <span data-toggle="tooltip" title="${this.label} length" data-help-title="${this.label} length" data-help="This number represents the number of characters in the ${this.label}.<br><br>The CRLF end of line separator is counted as two characters which impacts this value.">
+            <span data-toggle="tooltip" title="${tUI(`${this.label} length`)}" data-help-title="${tUI(`${this.label} length`)}" data-help="${tUI(`This number represents the number of characters in the ${this.label}.<br><br>The CRLF end of line separator is counted as two characters which impacts this value.`)}">
                 <i class="material-icons">abc</i>
                 <span class="stats-length-value"></span>
             </span>
-            <span data-toggle="tooltip" title="Number of lines"  data-help-title="Number of lines" data-help="This number represents the number of lines in the ${this.label}. Lines are separated by the End of Line Sequence which can be changed using the EOL selector at the far right of this status bar.">
+            <span data-toggle="tooltip" title="${tUI("Number of lines")}"  data-help-title="${tUI("Number of lines")}" data-help="${tUI(`This number represents the number of lines in the ${this.label}. Lines are separated by the End of Line Sequence which can be changed using the EOL selector at the far right of this status bar.`)}">
                 <i class="material-icons">sort</i>
                 <span class="stats-lines-value"></span>
             </span>
 
-            <span class="sel-info" data-toggle="tooltip" title="Main selection" data-help-title="Main selection" data-help="These numbers show which offsets have been selected and how many characters are in the current selection. If multiple selections are made, these numbers refer to the latest one. ">
+            <span class="sel-info" data-toggle="tooltip" title="${tUI("Main selection")}" data-help-title="${tUI("Main selection")}" data-help="${tUI("These numbers show which offsets have been selected and how many characters are in the current selection. If multiple selections are made, these numbers refer to the latest one.")}">
                 <i class="material-icons">highlight_alt</i>
                 <span class="sel-start-value"></span>\u279E<span class="sel-end-value"></span>
-                (<span class="sel-length-value"></span> selected)
+                (<span class="sel-length-value"></span>${formatPattern("selectedSuffix", {}, " selected)")})
             </span>
-            <span class="cur-offset-info" data-toggle="tooltip" title="Cursor offset" data-help-title="Cursor offset" data-help="This number indicates what the current offset of the cursor is from the beginning of the ${this.label}.<br><br>The CRLF end of line separator is counted as two characters which impacts this value.">
+            <span class="cur-offset-info" data-toggle="tooltip" title="${tUI("Cursor offset")}" data-help-title="${tUI("Cursor offset")}" data-help="${tUI(`This number indicates what the current offset of the cursor is from the beginning of the ${this.label}.<br><br>The CRLF end of line separator is counted as two characters which impacts this value.`)}">
                 <i class="material-icons">location_on</i>
                 <span class="cur-offset-value"></span>
             </span>`;
@@ -386,18 +387,18 @@ class StatusBarPanel {
         }
 
         return `
-            <span class="baking-time-info" style="display: none" data-toggle="tooltip" data-html="true" title="Baking time" data-help-title="Baking time" data-help="The baking time is the total time between data being read from the input, processed, and then displayed in the output.<br><br>The 'Threading overhead' value accounts for the transfer of data between different processing threads, as well as some garbage collection. It is not included in the overall bake time displayed in the status bar as it is largely influenced by background operating system and browser activity which can fluctuate significantly.">
+            <span class="baking-time-info" style="display: none" data-toggle="tooltip" data-html="true" title="${tUI("Baking time")}" data-help-title="${tUI("Baking time")}" data-help="${tUI("The baking time is the total time between data being read from the input, processed, and then displayed in the output.<br><br>The 'Threading overhead' value accounts for the transfer of data between different processing threads, as well as some garbage collection. It is not included in the overall bake time displayed in the status bar as it is largely influenced by background operating system and browser activity which can fluctuate significantly.")}">
                 <i class="material-icons">schedule</i>
                 <span class="baking-time-value"></span>ms
             </span>
 
-            <div class="cm-status-bar-select chr-enc-select" data-help-title="${this.label} character encoding" data-help="${chrEncHelpText}">
-                <span class="cm-status-bar-select-btn" data-toggle="tooltip" data-html="true" data-placement="left" title="${this.label} character encoding">
-                    <i class="material-icons">text_fields</i> <span class="chr-enc-value">Raw Bytes</span>
+            <div class="cm-status-bar-select chr-enc-select" data-help-title="${tUI(`${this.label} character encoding`)}" data-help="${tUI(chrEncHelpText)}">
+                <span class="cm-status-bar-select-btn" data-toggle="tooltip" data-html="true" data-placement="left" title="${tUI(`${this.label} character encoding`)}">
+                    <i class="material-icons">text_fields</i> <span class="chr-enc-value">${tUI("Raw Bytes")}</span>
                 </span>
                 <div class="cm-status-bar-select-content">
                     <div class="cm-status-bar-select-scroll no-select">
-                        <a href="#" draggable="false" data-val="0">Raw Bytes</a>
+                        <a href="#" draggable="false" data-val="0">${tUI("Raw Bytes")}</a>
                         ${chrEncOptions}
                     </div>
                     <div class="input-group cm-status-bar-filter-search">
@@ -406,24 +407,24 @@ class StatusBarPanel {
                                 <i class="material-icons">search</i>
                             </span>
                         </div>
-                        <input type="text" class="form-control cm-status-bar-filter-input" placeholder="Filter...">
+                        <input type="text" class="form-control cm-status-bar-filter-input" placeholder="${tUI("Filter...")}">
                     </div>
                 </div>
             </div>
 
-            <div class="cm-status-bar-select eol-select" data-help-title="${this.label} EOL sequence" data-help="${eolHelpText}">
-                <span class="cm-status-bar-select-btn" data-toggle="tooltip" data-html="true" data-placement="left" title="End of line sequence">
+            <div class="cm-status-bar-select eol-select" data-help-title="${tUI(`${this.label} EOL sequence`)}" data-help="${tUI(eolHelpText)}">
+                <span class="cm-status-bar-select-btn" data-toggle="tooltip" data-html="true" data-placement="left" title="${tUI("End of line sequence:")}">
                     <i class="material-icons">keyboard_return</i> <span class="eol-value"></span>
                 </span>
                 <div class="cm-status-bar-select-content no-select">
-                    <a href="#" draggable="false" data-val="LF">Line Feed, U+000A</a>
-                    <a href="#" draggable="false" data-val="VT">Vertical Tab, U+000B</a>
-                    <a href="#" draggable="false" data-val="FF">Form Feed, U+000C</a>
-                    <a href="#" draggable="false" data-val="CR">Carriage Return, U+000D</a>
-                    <a href="#" draggable="false" data-val="CRLF">CR+LF, U+000D U+000A</a>
+                    <a href="#" draggable="false" data-val="LF">${tUI("Line Feed, U+000A")}</a>
+                    <a href="#" draggable="false" data-val="VT">${tUI("Vertical Tab, U+000B")}</a>
+                    <a href="#" draggable="false" data-val="FF">${tUI("Form Feed, U+000C")}</a>
+                    <a href="#" draggable="false" data-val="CR">${tUI("Carriage Return, U+000D")}</a>
+                    <a href="#" draggable="false" data-val="CRLF">${tUI("CR+LF, U+000D U+000A")}</a>
                     <!-- <a href="#" draggable="false" data-val="NL">Next Line, U+0085</a> This causes problems. -->
-                    <a href="#" draggable="false" data-val="LS">Line Separator, U+2028</a>
-                    <a href="#" draggable="false" data-val="PS">Paragraph Separator, U+2029</a>
+                    <a href="#" draggable="false" data-val="LS">${tUI("Line Separator, U+2028")}</a>
+                    <a href="#" draggable="false" data-val="PS">${tUI("Paragraph Separator, U+2029")}</a>
                 </div>
             </div>`;
     }

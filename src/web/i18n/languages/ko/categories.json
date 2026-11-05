@@ -1,0 +1,19 @@
+{
+    "Favourites": "즐겨찾기",
+    "Data format": "데이터 형식",
+    "Encryption / Encoding": "암호화/인코딩",
+    "Public Key": "공개 키",
+    "Arithmetic / Logic": "연산/논리",
+    "Networking": "네트워킹",
+    "Language": "언어",
+    "Utils": "유틸리티",
+    "Date / Time": "날짜/시간",
+    "Extractors": "추출",
+    "Compression": "압축",
+    "Hashing": "해싱",
+    "Code tidy": "코드 정리",
+    "Forensics": "포렌식",
+    "Multimedia": "멀티미디어",
+    "Other": "기타",
+    "Flow control": "흐름 제어"
+}

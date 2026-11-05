@@ -1,0 +1,19 @@
+{
+    "Favourites": "我的最愛",
+    "Data format": "資料格式",
+    "Encryption / Encoding": "加密/編碼",
+    "Public Key": "公鑰",
+    "Arithmetic / Logic": "運算/邏輯",
+    "Networking": "網路",
+    "Language": "語言",
+    "Utils": "公用程式",
+    "Date / Time": "日期/時間",
+    "Extractors": "擷取器",
+    "Compression": "壓縮",
+    "Hashing": "雜湊",
+    "Code tidy": "程式碼整理",
+    "Forensics": "鑑識",
+    "Multimedia": "多媒體",
+    "Other": "其他",
+    "Flow control": "流程控制"
+}

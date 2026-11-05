@@ -6,6 +6,7 @@
 
 import Utils from "../../core/Utils.mjs";
 import { eolSeqToCode } from "../utils/editorUtils.mjs";
+import {tUI} from "../i18n/i18n.mjs";
 
 
 /**
@@ -75,9 +76,9 @@ class ControlsWaiter {
      */
     bakeClick() {
         const btnBake = document.getElementById("bake");
-        if (btnBake.textContent.indexOf("Bake") > 0) {
+        if (btnBake.classList.contains("btn-success")) {
             this.app.manager.input.bakeAll();
-        } else if (btnBake.textContent.indexOf("Cancel") > 0) {
+        } else if (btnBake.classList.contains("btn-danger")) {
             this.manager.worker.cancelBake(false, true);
         }
     }
@@ -246,7 +247,7 @@ class ControlsWaiter {
     saveButtonClick() {
         if (!this.app.isLocalStorageAvailable()) {
             this.app.alert(
-                "Your security settings do not allow access to local storage so your recipe cannot be saved.",
+                tUI("Your security settings do not allow access to local storage so your recipe cannot be saved."),
                 5000
             );
             return false;
@@ -256,7 +257,7 @@ class ControlsWaiter {
         const recipeStr  = document.querySelector("#save-texts .tab-pane.active textarea").value;
 
         if (!recipeName) {
-            this.app.alert("Please enter a recipe name", 3000);
+            this.app.alert(tUI("Please enter a recipe name"), 3000);
             return;
         }
 
@@ -273,7 +274,7 @@ class ControlsWaiter {
         localStorage.savedRecipes = JSON.stringify(savedRecipes);
         localStorage.recipeId = recipeId;
 
-        this.app.alert(`Recipe saved as "${recipeName}".`, 3000);
+        this.app.alert(`${tUI("Recipe saved as")} "${recipeName}".`, 3000);
     }
 
 
@@ -357,7 +358,7 @@ class ControlsWaiter {
 
             $("#rec-list [data-toggle=popover]").popover();
         } catch (e) {
-            this.app.alert("Invalid recipe", 2000);
+            this.app.alert(tUI("Invalid recipe"), 2000);
         }
     }
 
@@ -516,21 +517,21 @@ ${navigator.userAgent}
 
         switch (func) {
             case "cancel":
-                btnText.innerText = "Cancel";
+                btnText.innerText = tUI("Cancel");
                 bakeButton.classList.remove("btn-success");
                 bakeButton.classList.remove("btn-warning");
                 bakeButton.classList.add("btn-danger");
                 break;
             case "loading":
                 bakeButton.style.background = "";
-                btnText.innerText = "Loading...";
+                btnText.innerText = tUI("Loading...");
                 bakeButton.classList.remove("btn-success");
                 bakeButton.classList.remove("btn-danger");
                 bakeButton.classList.add("btn-warning");
                 break;
             default:
                 bakeButton.style.background = "";
-                btnText.innerText = "Bake!";
+                btnText.innerText = tUI("Bake!");
                 bakeButton.classList.remove("btn-danger");
                 bakeButton.classList.remove("btn-warning");
                 bakeButton.classList.add("btn-success");

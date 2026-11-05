@@ -6,6 +6,7 @@
 
 import HTMLIngredient from "./HTMLIngredient.mjs";
 import Utils from "../core/Utils.mjs";
+import {tUI, formatPattern} from "./i18n/i18n.mjs";
 import url from "url";
 
 
@@ -26,7 +27,8 @@ class HTMLOperation {
         this.app         = app;
         this.manager     = manager;
 
-        this.name        = name;
+        this.opName      = name;                     // Identifier, used in recipes
+        this.name        = config.display || name;   // Localised display name
         this.description = config.description;
         this.infoURL     = config.infoURL;
         this.manualBake  = config.manualBake || false;
@@ -53,6 +55,8 @@ class HTMLOperation {
         if (elementId) {
             html += ` id='${elementId}'`;
         }
+
+        html += ` data-op-name='${Utils.escapeHtml(this.opName)}'`;
 
         if (this.description) {
             const infoLink = this.infoURL ? `<hr>${titleFromWikiLink(this.infoURL)}` : "";
@@ -81,7 +85,7 @@ class HTMLOperation {
      * @returns {string}
      */
     toFullHtml() {
-        let html = `<div class="op-title">${Utils.escapeHtml(this.name)}</div>
+        let html = `<div class="op-title" data-op-name="${Utils.escapeHtml(this.opName)}">${Utils.escapeHtml(this.name)}</div>
         <div class="ingredients">`;
 
         for (let i = 0; i < this.ingList.length; i++) {
@@ -90,9 +94,9 @@ class HTMLOperation {
 
         html += `</div>
         <div class="recip-icons">
-            <i class="material-icons breakpoint" title="Set breakpoint" break="false" data-help-title="Setting breakpoints" data-help="Setting a breakpoint on an operation will cause execution of the Recipe to pause when it reaches that operation.">pause</i>
-            <i class="material-icons disable-icon" title="Disable operation" disabled="false" data-help-title="Disabling operations" data-help="Disabling an operation will prevent it from being executed when the Recipe is baked. Execution will skip over the disabled operation and continue with subsequent operations.">not_interested</i>
-            <i class="material-icons hide-args-icon" title="Hide operation's arguments" hide-args="false" data-help-title="Hide operation's arguments" data-help="Hiding an operation's argument will save space in the Recipe window. Execution will still take place with the selected argument options.">keyboard_arrow_up</i>
+            <i class="material-icons breakpoint" title="${tUI("Set breakpoint")}" break="false" data-help-title="${tUI("Setting breakpoints")}" data-help="${tUI("Setting a breakpoint on an operation will cause execution of the Recipe to pause when it reaches that operation.")}">pause</i>
+            <i class="material-icons disable-icon" title="${tUI("Disable operation")}" disabled="false" data-help-title="${tUI("Disabling operations")}" data-help="${tUI("Disabling an operation will prevent it from being executed when the Recipe is baked. Execution will skip over the disabled operation and continue with subsequent operations.")}">not_interested</i>
+            <i class="material-icons hide-args-icon" title="${tUI("Hide operation's arguments")}" hide-args="false" data-help-title="${tUI("Hide operation's arguments")}" data-help="${tUI("Hiding an operation's argument will save space in the Recipe window. Execution will still take place with the selected argument options.")}">keyboard_arrow_up</i>
         </div>
         <div class="clearfix">&nbsp;</div>`;
 
@@ -175,10 +179,11 @@ function titleFromWikiLink(urlStr) {
             break;
         default:
             // Not a wiki link, return full URL
-            return `<a href='${urlStr}' target='_blank'>More Information<i class='material-icons inline-icon'>open_in_new</i></a>`;
+            return `<a href='${urlStr}' target='_blank'>${tUI("More Information")}<i class='material-icons inline-icon'>open_in_new</i></a>`;
     }
 
-    return `<a href='${urlObj.href}' target='_blank'>${pageTitle}<i class='material-icons inline-icon'>open_in_new</i></a> on ${wikiName}`;
+    const link = `<a href='${urlObj.href}' target='_blank'>${pageTitle}<i class='material-icons inline-icon'>open_in_new</i></a>`;
+    return link + formatPattern("wikiJoin", {wiki: tUI(wikiName)}, ` on ${tUI(wikiName)}`);
 }
 
 export default HTMLOperation;

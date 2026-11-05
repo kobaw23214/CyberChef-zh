@@ -8,7 +8,7 @@ import HTMLOperation from "../HTMLOperation.mjs";
 import Sortable from "sortablejs";
 import Utils from "../../core/Utils.mjs";
 import {escapeControlChars} from "../utils/editorUtils.mjs";
-import DOMPurify from "dompurify";
+import {tOption, tUI} from "../i18n/i18n.mjs";
 
 
 /**
@@ -48,7 +48,7 @@ class RecipeWaiter {
             filter: ".arg",
             preventOnFilter: false,
             setData: function(dataTransfer, dragEl) {
-                dataTransfer.setData("Text", dragEl.querySelector(".op-title").textContent);
+                dataTransfer.setData("Text", dragEl.querySelector(".op-title").getAttribute("data-op-name"));
             },
             onStart: function() {
                 this.dragInProgress = true;
@@ -105,7 +105,7 @@ class RecipeWaiter {
             },
             sort: false,
             setData: function(dataTransfer, dragEl) {
-                dataTransfer.setData("Text", dragEl.textContent);
+                dataTransfer.setData("Text", dragEl.getAttribute("data-op-name") || dragEl.textContent);
             },
             onStart: function(evt) {
                 self.dragInProgress = true;
@@ -363,7 +363,7 @@ class RecipeWaiter {
                 } else if (ingList[j].classList.contains("toggle-string")) {
                     // toggleString
                     ingredients[j] = {
-                        option: ingList[j].parentNode.parentNode.querySelector("button").textContent,
+                        option: ingList[j].parentNode.parentNode.querySelector("button").getAttribute("data-value"),
                         string: ingList[j].value
                     };
                 } else if (ingList[j].getAttribute("type") === "number") {
@@ -376,7 +376,7 @@ class RecipeWaiter {
             }
 
             item = {
-                op: operations[i].querySelector(".op-title").textContent,
+                op: operations[i].querySelector(".op-title").getAttribute("data-op-name"),
                 args: ingredients
             };
 
@@ -420,7 +420,7 @@ class RecipeWaiter {
      * @param {element} el - The operation stub element from the operations pane
      */
     buildRecipeOperation(el) {
-        const opName = el.textContent;
+        const opName = el.getAttribute("data-op-name") || el.textContent;
         const op = new HTMLOperation(opName, this.app.operations[opName], this.app, this.manager);
         el.innerHTML = op.toFullHtml();
 
@@ -433,7 +433,7 @@ class RecipeWaiter {
         // Disable auto-bake if this is a manual op
         if (op.manualBake && this.app.autoBake_) {
             this.manager.controls.setAutoBake(false);
-            this.app.alert("Auto-Bake is disabled by default when using this operation.", 5000);
+            this.app.alert(tUI("Auto-Bake is disabled by default when using this operation."), 5000);
         }
     }
 
@@ -449,8 +449,7 @@ class RecipeWaiter {
         const item = document.createElement("li");
 
         item.classList.add("operation");
-        const clean = DOMPurify.sanitize(name);
-        item.innerHTML = clean;
+        item.setAttribute("data-op-name", name);
 
         this.buildRecipeOperation(item);
         document.getElementById("rec-list").appendChild(item);
@@ -487,7 +486,8 @@ class RecipeWaiter {
         const el = e.target;
         const button = el.parentNode.parentNode.querySelector("button");
 
-        button.innerHTML = el.textContent;
+        button.setAttribute("data-value", el.getAttribute("data-value"));
+        button.innerHTML = Utils.escapeHtml(tOption(el.getAttribute("data-value")));
         this.ingChange();
     }
 

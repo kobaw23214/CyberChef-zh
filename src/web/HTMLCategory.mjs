@@ -14,9 +14,11 @@ class HTMLCategory {
      *
      * @param {string} name - The name of the category.
      * @param {boolean} selected - Whether this category is pre-selected or not.
+     * @param {string} [displayName] - Localised name of the category, if available.
      */
-    constructor(name, selected) {
+    constructor(name, selected, displayName) {
         this.name = name;
+        this.displayName = displayName || name;
         this.selected = selected;
         this.opList = [];
     }
@@ -41,7 +43,7 @@ class HTMLCategory {
         const catName = "cat" + this.name.replace(/[\s/\-:_]/g, "");
         let html = `<div class="panel category">
         <a class="category-title" data-toggle="collapse" data-target="#${catName}">
-            ${this.name}
+            ${this.displayName}
             <span class="op-count hidden">
                 ${this.opList.length}
             </span>

@@ -11,6 +11,7 @@ import {isUTF8, CHR_ENC_SIMPLE_REVERSE_LOOKUP} from "../../core/lib/ChrEnc.mjs";
 import {detectFileType} from "../../core/lib/FileType.mjs";
 import FileSaver from "file-saver";
 import ZipWorker from "worker-loader?inline=no-fallback!../workers/ZipWorker.mjs";
+import {tUI} from "../i18n/i18n.mjs";
 
 import {
     EditorView,
@@ -164,7 +165,7 @@ class OutputWaiter {
 
         if (this.eolState === 1) {
             // Alert
-            this.app.alert(`Output end of line separator has been detected and changed to ${eolCodeToName[eol]}`, 5000);
+            this.app.alert(`${tUI("Output end of line separator has been detected and changed to")} ${eolCodeToName[eol]}`, 5000);
         }
 
         const currentTabNum = this.manager.tabs.getActiveTab("output");
@@ -232,7 +233,7 @@ class OutputWaiter {
             this.app.updateURL(true);
         } else if (currentEnc !== chrEncVal) {
             // Alert
-            this.app.alert(`Output character encoding has been detected and changed to ${CHR_ENC_SIMPLE_REVERSE_LOOKUP[chrEncVal] || "Raw Bytes"}`, 5000);
+            this.app.alert(`${tUI("Output character encoding has been detected and changed to")} ${tUI(CHR_ENC_SIMPLE_REVERSE_LOOKUP[chrEncVal] || "Raw Bytes")}`, 5000);
         }
     }
 
@@ -889,7 +890,7 @@ class OutputWaiter {
     async downloadFile() {
         const dish = this.getOutputDish(this.manager.tabs.getActiveTab("output"));
         if (dish === null) {
-            this.app.alert("Could not find any output data to download. Has this output been baked?", 3000);
+            this.app.alert(tUI("Could not find any output data to download. Has this output been baked?"), 3000);
             return;
         }
 
@@ -962,7 +963,7 @@ class OutputWaiter {
 
         if (fileName === null || fileName === "") {
             // Don't zip the files if there isn't a filename
-            this.app.alert("No filename was specified.", 3000);
+            this.app.alert(tUI("No filename was specified."), 3000);
             return;
         }
 
@@ -1483,7 +1484,7 @@ class OutputWaiter {
     async copyClick() {
         const dish = this.getOutputDish(this.manager.tabs.getActiveTab("output"));
         if (dish === null) {
-            this.app.alert("Could not find data to copy. Has this output been baked yet?", 3000);
+            this.app.alert(tUI("Could not find data to copy. Has this output been baked yet?"), 3000);
             return;
         }
 
@@ -1491,9 +1492,9 @@ class OutputWaiter {
         const self = this;
 
         navigator.clipboard.writeText(output).then(function() {
-            self.app.alert("Copied raw output successfully.", 2000);
+            self.app.alert(tUI("Copied raw output successfully."), 2000);
         }, function(err) {
-            self.app.alert("Sorry, the output could not be copied.", 3000);
+            self.app.alert(tUI("Sorry, the output could not be copied."), 3000);
         });
     }
 

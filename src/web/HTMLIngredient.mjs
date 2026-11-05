@@ -5,6 +5,7 @@
  */
 
 import Utils from "../core/Utils.mjs";
+import {tOption} from "./i18n/i18n.mjs";
 
 /**
  * Object to handle the creation of operation ingredients.
@@ -22,7 +23,8 @@ class HTMLIngredient {
         this.app = app;
         this.manager = manager;
 
-        this.name = config.name;
+        this.argName    = config.name;                 // Identifier, sent to the worker
+        this.name       = config.display || config.name; // Localised label
         this.type = config.type;
         this.value = config.value;
         this.disabled = config.disabled || false;
@@ -61,7 +63,7 @@ class HTMLIngredient {
                         class="form-control arg"
                         id="${this.id}"
                         tabindex="${this.tabIndex}"
-                        arg-name="${this.name}"
+                        arg-name="${this.argName}"
                         value="${this.value}"
                         ${this.disabled ? "disabled" : ""}
                         ${this.maxLength ? `maxlength="${this.maxLength}"` : ""}>
@@ -75,7 +77,7 @@ class HTMLIngredient {
                         class="form-control arg inline"
                         id="${this.id}"
                         tabindex="${this.tabIndex}"
-                        arg-name="${this.name}"
+                        arg-name="${this.argName}"
                         value="${this.value}"
                         ${this.disabled ? "disabled" : ""}
                         ${this.maxLength ? `maxlength="${this.maxLength}"` : ""}>
@@ -89,16 +91,16 @@ class HTMLIngredient {
                             class="form-control arg toggle-string"
                             id="${this.id}"
                             tabindex="${this.tabIndex}"
-                            arg-name="${this.name}"
+                            arg-name="${this.argName}"
                             value="${this.value}"
                             ${this.disabled ? "disabled" : ""}
                             ${this.maxLength ? `maxlength="${this.maxLength}"` : ""}>
                     </div>
                     <div class="input-group-append">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">${this.toggleValues[0]}</button>
+                        <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" data-value="${Utils.escapeHtml(this.toggleValues[0])}">${Utils.escapeHtml(tOption(this.toggleValues[0]))}</button>
                         <div class="dropdown-menu toggle-dropdown">`;
                 for (i = 0; i < this.toggleValues.length; i++) {
-                    html += `<a class="dropdown-item" href="#">${this.toggleValues[i]}</a>`;
+                    html += `<a class="dropdown-item" href="#" data-value="${Utils.escapeHtml(this.toggleValues[i])}">${Utils.escapeHtml(tOption(this.toggleValues[i]))}</a>`;
                 }
                 html += `</div>
                     </div>
@@ -112,7 +114,7 @@ class HTMLIngredient {
                         class="form-control arg inline"
                         id="${this.id}"
                         tabindex="${this.tabIndex}"
-                        arg-name="${this.name}"
+                        arg-name="${this.argName}"
                         value="${this.value}"
                         min="${this.min}"
                         max="${this.max}"
@@ -128,10 +130,10 @@ class HTMLIngredient {
                                 class="arg"
                                 id="${this.id}"
                                 tabindex="${this.tabIndex}"
-                                arg-name="${this.name}"
+                                arg-name="${this.argName}"
                                 ${this.value ? " checked" : ""}
                                 ${this.disabled ? " disabled" : ""}
-                                value="${this.name}"> ${this.name}
+                                value="${this.argName}"> ${this.name}
                         </label>
                     </div>
                 </div>`;
@@ -143,7 +145,7 @@ class HTMLIngredient {
                         class="form-control arg inline"
                         id="${this.id}"
                         tabindex="${this.tabIndex}"
-                        arg-name="${this.name}"
+                        arg-name="${this.argName}"
                         ${this.disabled ? "disabled" : ""}>`;
                 for (i = 0; i < this.value.length; i++) {
                     if ((m = this.value[i].match(/\[([a-z0-9 -()^]+)\]/i))) {
@@ -151,7 +153,7 @@ class HTMLIngredient {
                     } else if (this.value[i].match(/\[\/([a-z0-9 -()^]+)\]/i)) {
                         html += "</optgroup>";
                     } else {
-                        html += `<option ${this.defaultIndex === i ? "selected" : ""}>${this.value[i]}</option>`;
+                        html += `<option value="${Utils.escapeHtml(this.value[i])}" ${this.defaultIndex === i ? "selected" : ""}>${Utils.escapeHtml(tOption(this.value[i]))}</option>`;
                     }
                 }
                 html += `</select>
@@ -165,7 +167,7 @@ class HTMLIngredient {
                         class="form-control arg no-state-change populate-option"
                         id="${this.id}"
                         tabindex="${this.tabIndex}"
-                        arg-name="${this.name}"
+                        arg-name="${this.argName}"
                         data-target="${this.target}"
                         ${this.disabled ? "disabled" : ""}>`;
                 for (i = 0; i < this.value.length; i++) {
@@ -195,7 +197,7 @@ class HTMLIngredient {
                         class="form-control arg"
                         id="${this.id}"
                         tabindex="${this.tabIndex}"
-                        arg-name="${this.name}"
+                        arg-name="${this.argName}"
                         value="${this.value[this.defaultIndex].value}"
                         ${this.disabled ? "disabled" : ""}>
                     <div class="input-group-append">
@@ -224,7 +226,7 @@ class HTMLIngredient {
                         class="form-control arg inline"
                         id="${this.id}"
                         tabindex="${this.tabIndex}"
-                        arg-name="${this.name}"
+                        arg-name="${this.argName}"
                         value="${this.value[this.defaultIndex].value}"
                         ${this.disabled ? "disabled" : ""}>
                     <div class="input-group-append inline">
@@ -253,7 +255,7 @@ class HTMLIngredient {
                         class="form-control arg"
                         id="${this.id}"
                         tabindex="${this.tabIndex}"
-                        arg-name="${this.name}"
+                        arg-name="${this.argName}"
                         rows="${this.rows ? this.rows : 3}"
                         ${this.disabled ? "disabled" : ""}>${this.value}</textarea>
                 </div>`;
@@ -265,7 +267,7 @@ class HTMLIngredient {
                         class="form-control arg inline arg-selector"
                         id="${this.id}"
                         tabindex="${this.tabIndex}"
-                        arg-name="${this.name}"
+                        arg-name="${this.argName}"
                         ${this.disabled ? "disabled" : ""}>`;
                 for (i = 0; i < this.value.length; i++) {
                     html += `<option ${this.defaultIndex === i ? "selected" : ""}
@@ -285,7 +287,7 @@ class HTMLIngredient {
                     <input type="hidden"
                         class="form-control arg"
                         id="${this.id}"
-                        arg-name="${this.name}"
+                        arg-name="${this.argName}"
                         value="">
                 </div>`;
                 break;

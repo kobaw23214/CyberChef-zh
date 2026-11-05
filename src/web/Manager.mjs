@@ -7,6 +7,7 @@
 import WorkerWaiter from "./waiters/WorkerWaiter.mjs";
 import WindowWaiter from "./waiters/WindowWaiter.mjs";
 import ControlsWaiter from "./waiters/ControlsWaiter.mjs";
+import MCPWaiter from "./waiters/MCPWaiter.mjs";
 import RecipeWaiter from "./waiters/RecipeWaiter.mjs";
 import OperationsWaiter from "./waiters/OperationsWaiter.mjs";
 import InputWaiter from "./waiters/InputWaiter.mjs";
@@ -64,6 +65,7 @@ class Manager {
         this.worker      = new WorkerWaiter(this.app, this);
         this.window      = new WindowWaiter(this.app);
         this.controls    = new ControlsWaiter(this.app, this);
+        this.mcp         = new MCPWaiter(this.app, this);
         this.recipe      = new RecipeWaiter(this.app, this);
         this.ops         = new OperationsWaiter(this.app, this);
         this.tabs        = new TabWaiter(this.app, this);
@@ -227,6 +229,24 @@ class Manager {
 
         // Options
         document.getElementById("options").addEventListener("click", this.options.optionsClick.bind(this.options));
+
+        // MCP management panel
+        document.getElementById("mcp").addEventListener("click", this.mcp.mcpClick.bind(this.mcp));
+        document.getElementById("mcp-close").addEventListener("click", this.mcp.close.bind(this.mcp));
+        document.getElementById("mcp-connect").addEventListener("click", this.mcp.connectClick.bind(this.mcp));
+        document.getElementById("mcp-refresh").addEventListener("click", () => this.mcp.refresh());
+        document.getElementById("mcp-records-clear").addEventListener("click", this.mcp.clearRecordsClick.bind(this.mcp));
+        document.getElementById("mcp-ops-search").addEventListener("input", this.mcp.searchChange.bind(this.mcp));
+        document.getElementById("mcp-ops-all").addEventListener("click", () => this.mcp.setAllOperations(true));
+        document.getElementById("mcp-ops-none").addEventListener("click", () => this.mcp.setAllOperations(false));
+        // 双 sheet 切换与调用记录筛选
+        document.getElementById("mcp-tab-manage").addEventListener("click", () => this.mcp.switchSheet("manage"));
+        document.getElementById("mcp-tab-records").addEventListener("click", () => this.mcp.switchSheet("records"));
+        document.getElementById("mcp-records-search").addEventListener("input", this.mcp.recordsFilterChange.bind(this.mcp));
+        document.getElementById("mcp-records-range").addEventListener("change", this.mcp.recordsFilterChange.bind(this.mcp));
+        document.getElementById("mcp-records-from").addEventListener("change", this.mcp.recordsFilterChange.bind(this.mcp));
+        document.getElementById("mcp-records-to").addEventListener("change", this.mcp.recordsFilterChange.bind(this.mcp));
+        document.getElementById("manage-operations").addEventListener("click", this.options.manageOperationsClick.bind(this.options));
         document.getElementById("reset-options").addEventListener("click", this.options.resetOptionsClick.bind(this.options));
         this.addDynamicListener(".option-item input[type=checkbox]", "change", this.options.switchChange, this.options);
         this.addDynamicListener(".option-item input[type=checkbox]#wordWrap", "change", this.options.setWordWrap, this.options);

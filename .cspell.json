@@ -1,7 +1,13 @@
 {
     "version": "0.2",
     "language": "en,en-gb",
-    "words": [],
+    "words": [
+      "modelcontextprotocol",
+      "cyberchef",
+      "onsessioninitialized",
+      "Welchman",
+      "GCHQ"
+    ],
     "dictionaries": [
       "npm",
       "softwareTerms",

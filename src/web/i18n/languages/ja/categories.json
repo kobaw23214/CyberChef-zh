@@ -1,0 +1,19 @@
+{
+    "Favourites": "お気に入り",
+    "Data format": "データ形式",
+    "Encryption / Encoding": "暗号化/エンコード",
+    "Public Key": "公開鍵",
+    "Arithmetic / Logic": "算術/論理",
+    "Networking": "ネットワーク",
+    "Language": "言語",
+    "Utils": "ユーティリティ",
+    "Date / Time": "日付/時刻",
+    "Extractors": "抽出",
+    "Compression": "圧縮",
+    "Hashing": "ハッシュ",
+    "Code tidy": "コード整形",
+    "Forensics": "フォレンジック",
+    "Multimedia": "マルチメディア",
+    "Other": "その他",
+    "Flow control": "フロー制御"
+}

@@ -15,16 +15,20 @@ import "bootstrap-colorpicker";
 import moment from "moment-timezone";
 import * as CanvasComponents from "../core/lib/CanvasComponents.mjs";
 
+// Localise relative durations (e.g. "Last build" notice)
+moment.locale("zh-cn");
+
 // CyberChef
 import App from "./App.mjs";
 import Categories from "../core/config/Categories.json" with { type: "json" };
 import OperationConfig from "../core/config/OperationConfig.json" with { type: "json" };
+import {setLanguage, loadLanguage, momentLocale, decorateCategories, decorateOperations, applyStaticTranslations} from "./i18n/i18n.mjs";
 
 
 /**
  * Main function used to build the CyberChef web app.
  */
-function main() {
+async function main() {
     const defaultFavourites = [
         "To Base64",
         "From Base64",
@@ -40,6 +44,8 @@ function main() {
     ];
 
     const defaultOptions = {
+        language:           "zh-CN",
+        hiddenOperations:   [],
         updateUrl:           true,
         showHighlighter:     true,
         wordWrap:            true,
@@ -55,8 +61,28 @@ function main() {
         showCatCount:        false,
     };
 
+    // Apply the saved UI language before anything renders
+    let language = "zh-CN";
+    try {
+        language = JSON.parse(localStorage.getItem("options") || "{}").language || "zh-CN";
+    } catch (err) {}
+    setLanguage(language);
+    // Load the language bundle before anything renders so that decorations
+    // and the static chrome translation hit the dictionaries.
+    await loadLanguage(language);
+    moment.locale(momentLocale());
+
+    // Translate the static chrome before the app boots so that Bootstrap
+    // tooltips pick up the translated titles when they initialise
+    applyStaticTranslations();
+
     document.removeEventListener("DOMContentLoaded", main, false);
-    window.app = new App(Categories, OperationConfig, defaultFavourites, defaultOptions);
+    window.app = new App(
+        decorateCategories(Categories),
+        decorateOperations(OperationConfig),
+        defaultFavourites,
+        defaultOptions
+    );
     window.app.setup();
 }
 

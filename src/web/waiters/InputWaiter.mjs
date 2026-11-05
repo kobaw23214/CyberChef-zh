@@ -10,6 +10,7 @@ import InputWorker from "worker-loader?inline=no-fallback!../workers/InputWorker
 import Utils, {debounce} from "../../core/Utils.mjs";
 import {toBase64} from "../../core/lib/Base64.mjs";
 import cptable from "codepage";
+import {tUI} from "../i18n/i18n.mjs";
 
 import {
     EditorView,
@@ -200,7 +201,7 @@ class InputWaiter {
 
         if (this.eolState === 1) {
             // Alert
-            this.app.alert(`Input end of line separator has been detected and changed to ${eolCodeToName[eol]}`, 5000);
+            this.app.alert(`${tUI("Input end of line separator has been detected and changed to")} ${eolCodeToName[eol]}`, 5000);
         }
 
         // Update the EOL value
@@ -299,7 +300,7 @@ class InputWaiter {
             if (longest > lineLengthThreshold) {
                 // If we are exceeding the max line length, turn off word wrap
                 wrap = false;
-                this.app.alert("Maximum line length exceeded. Word wrap will be temporarily disabled to improve performance.", 20000);
+                this.app.alert(tUI("Maximum line length exceeded. Word wrap will be temporarily disabled to improve performance."), 20000);
             }
         }
 
@@ -1612,7 +1613,10 @@ class InputWaiter {
         const showLoaded = document.getElementById("input-show-loaded").checked;
 
         const filter = document.getElementById("input-filter").value;
-        const filterType = document.getElementById("input-filter-button").innerText;
+        // The button text is localised; map it back to the value the worker expects
+        const filterTypeDisplay = document.getElementById("input-filter-button").innerText;
+        const filterTypeMap = {"内容": "CONTENT", "文件名": "FILENAME"};
+        const filterType = filterTypeMap[filterTypeDisplay] || filterTypeDisplay;
         const numResults = parseInt(document.getElementById("input-num-results").value, 10);
 
         this.inputWorker.postMessage({
