@@ -16,3 +16,13 @@ tests/operations/index.mjs
 tests/browser/output/*
 .node-version
 chrome
+
+# fork 部署产物(大文件,不入库;镜像归档由构建机产出)
+cyberchef_deploy.zip*
+cyberchef/cyberchef-service/image/*.tar.gz
+cyberchef/cyberchef-service/image/*.tar.gz.sha256
+cyberchef/cyberchef-service/mcp-data/
+.mcp-state/
+
+# 本地临时粘贴截图(不入库;正式截图在 docs/screenshots)
+/images/
