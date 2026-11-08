@@ -8,11 +8,12 @@
  * @license Apache-2.0
  */
 
+const utils = require("./browserUtils.js");
+
 module.exports = {
     before: browser => {
-        browser
-            .resizeWindow(1280, 800)
-            .url(browser.launchUrl);
+        utils.openInEnglish(browser);
+        browser.waitForElementNotPresent("#preloader", 10000);
     },
 
     "MCP panel opens from the toolbar": browser => {

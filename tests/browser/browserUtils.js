@@ -21,6 +21,26 @@ function clear(browser) {
 }
 
 /** @function
+ * Opens the app with the browser test fixtures using the source English UI.
+ *
+ * The product defaults to Simplified Chinese, while the browser tests assert
+ * source operation names and UI strings.
+ *
+ * @param {Browser} browser - Nightwatch client
+ */
+function openInEnglish(browser) {
+    browser
+        .resizeWindow(1280, 800)
+        .url(browser.launchUrl)
+        .waitForElementVisible("body", 5000)
+        .execute(function() {
+            localStorage.setItem("options", JSON.stringify({language: "en"}));
+        }, [])
+        .refresh()
+        .waitForElementVisible("body", 5000);
+}
+
+/** @function
  * Sets the input to the desired string
  *
  * @param {Browser} browser - Nightwatch client
@@ -274,6 +294,7 @@ function uploadFolder(browser, foldername) {
 
 
 module.exports = {
+    openInEnglish: openInEnglish,
     clear: clear,
     setInput: setInput,
     bake: bake,
