@@ -10,9 +10,7 @@ const utils = require("./browserUtils.js");
 
 module.exports = {
     before: browser => {
-        browser
-            .resizeWindow(1280, 800)
-            .url(browser.launchUrl);
+        utils.openInEnglish(browser);
     },
 
     "Loading screen": browser => {
@@ -34,6 +32,7 @@ module.exports = {
         browser.expect.element("#controls").to.be.visible;
         browser.expect.element("#input-text").to.be.visible;
         browser.expect.element("#output-text").to.be.visible;
+        browser.expect.element("html").to.have.attribute("lang").equals("en");
     },
 
     "Operations loaded": browser => {
@@ -97,8 +96,7 @@ module.exports = {
         browser
             .useXpath()
             .moveToElement(toHex, 10, 10)
-            .useCss()
-            .waitForElementVisible(".popover-body", 1000)
+            .pause(500)
             .doubleClick("xpath", toHex);
 
         // Confirm that it has been added to the recipe
