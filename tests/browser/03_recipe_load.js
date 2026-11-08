@@ -10,9 +10,8 @@ const utils = require("./browserUtils.js");
 
 module.exports = {
     before: browser => {
+        utils.openInEnglish(browser);
         browser
-            .resizeWindow(1280, 800)
-            .url(browser.launchUrl)
             .useCss()
             .waitForElementNotPresent("#preloader", 10000);
     },
